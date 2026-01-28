@@ -1,0 +1,18 @@
+{
+  "env": {
+    "es2022": true,
+    "node": true
+  },
+  "extends": ["standard"],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": "latest"
+  },
+  "rules": {
+    "no-console": "off",
+    "camelcase": "off",
+    "semi": "off",
+    "quotes": "off",
+    "comma-dangle": "off"
+  }
+}
