@@ -1,0 +1,67 @@
+{
+  "name": "Global Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8080/api/logs",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflow_id",
+              "value": "={{$workflow.id}}"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{$execution.id}}"
+            },
+            {
+              "name": "status",
+              "value": "error"
+            },
+            {
+              "name": "duration_ms",
+              "value": "0"
+            },
+            {
+              "name": "message",
+              "value": "={{$node[\"Error Trigger\"].json[\"message\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        460,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

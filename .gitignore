@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables (Critical security)
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Docker/n8n data (if mapped locally)
+postgres_data/
+n8n_data/
+redis_data/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Editor directories
+.idea/
+.vscode/

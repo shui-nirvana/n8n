@@ -3,17 +3,14 @@
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
+        "httpMethod": "GET",
         "path": "demo-signup",
         "options": {}
       },
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        250,
-        300
-      ]
+      "position": [250, 300]
     },
     {
       "parameters": {
@@ -21,11 +18,23 @@
           "string": [
             {
               "name": "log_message",
-              "value": "={{ 'New user signup: ' + $json.body.email }}"
+              "value": "={{ 'New user signup: ' + $json.query.email }}"
             },
             {
               "name": "status",
               "value": "success"
+            },
+            {
+              "name": "workflow_id",
+              "value": "={{ $workflow.id }}"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{ $execution.id }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ 'New user signup: ' + $json.query.email }}"
             }
           ]
         },
@@ -34,30 +43,78 @@
       "name": "Format Data",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [
-        450,
-        300
-      ]
+      "position": [450, 300]
     },
     {
       "parameters": {
-        "table": "automation_logs",
-        "columns": "workflow_id, execution_id, status, message",
+        "method": "POST",
+        "url": "http://backend:8080/api/logs",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflow_id",
+              "value": "={{$json.workflow_id}}"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{$json.execution_id}}"
+            },
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "message",
+              "value": "={{$json.message}}"
+            }
+          ]
+        },
         "options": {}
       },
-      "name": "Save to DB",
-      "type": "n8n-nodes-base.postgres",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {},
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
-      "position": [
-        650,
-        300
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "1",
-          "name": "Local Postgres"
-        }
-      }
+      "position": [250, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8080/api/logs",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflow_id",
+              "value": "={{$workflow.id}}"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{$execution.id}}"
+            },
+            {
+              "name": "status",
+              "value": "error"
+            },
+            {
+              "name": "message",
+              "value": "={{$node[\"Error Trigger\"].json[\"message\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 500]
     }
   ],
   "connections": {
@@ -76,7 +133,18 @@
       "main": [
         [
           {
-            "node": "Save to DB",
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
             "type": "main",
             "index": 0
           }

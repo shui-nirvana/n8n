@@ -78,12 +78,25 @@ export default function Dashboard({ onLogout }) {
           ? [
               metrics.success,
               metrics.error,
-              Math.max(0, metrics.total_logs - metrics.success - metrics.error),
+              metrics.total_logs - metrics.success - metrics.error,
             ]
           : [0, 0, 0],
         backgroundColor: ["#4caf50", "#f44336", "#ff9800"],
       },
     ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    scales: {
+      y: {
+        ticks: {
+          stepSize: 1,
+          precision: 0,
+        },
+        beginAtZero: true,
+      },
+    },
   };
 
   return (
@@ -107,7 +120,7 @@ export default function Dashboard({ onLogout }) {
                 <Typography variant="h6" gutterBottom>
                   Metrics
                 </Typography>
-                <Bar data={chartData} />
+                <Bar data={chartData} options={chartOptions} />
               </CardContent>
             </Card>
           </Grid>
@@ -132,32 +145,30 @@ export default function Dashboard({ onLogout }) {
                   <TableBody>
                     {executions.slice(0, 10).map((row) => (
                       <TableRow key={row.id}>
-                        <TableCell>{row.id.substring(0, 8)}...</TableCell>
+                        <TableCell>
+                          {String(row.execution_id || row.id)}
+                        </TableCell>
                         <TableCell>
                           <Chip
-                            label={row.status || row.mode}
+                            label={row.status}
                             color={
-                              row.status === "success" || row.finished
-                                ? "success"
-                                : "error"
+                              row.status === "success" ? "success" : "error"
                             }
                             size="small"
                           />
                         </TableCell>
                         <TableCell>
-                          {new Date(row.startedAt).toLocaleString()}
+                          {new Date(
+                            row.created_at || row.startedAt,
+                          ).toLocaleString()}
                         </TableCell>
-                        <TableCell>
-                          {row.finishedAt
-                            ? new Date(row.finishedAt) - new Date(row.startedAt)
-                            : "-"}
-                        </TableCell>
+                        <TableCell>{row.duration_ms || "-"}</TableCell>
                         <TableCell>
                           <Button
                             size="small"
                             onClick={() =>
                               window.open(
-                                `http://localhost:5678/execution/${row.id}`,
+                                `http://localhost:5678/workflow/${row.workflow_id}/executions/${row.execution_id}`,
                                 "_blank",
                               )
                             }

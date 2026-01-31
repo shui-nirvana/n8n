@@ -23,8 +23,11 @@ router.post("/workflows/:id/trigger", async (req, res) => {
 
 router.get("/executions", async (req, res) => {
   try {
-    const result = await listExecutions({ limit: 50 });
-    res.json(result);
+    const { rows } = await pool.query(
+      "SELECT * FROM automation_logs ORDER BY created_at DESC LIMIT 50"
+    );
+    // Wrap in { data: ... } to match frontend expectation
+    res.json({ data: rows });
   } catch (e) {
     res.json({ data: [] });
   }

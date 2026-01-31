@@ -7,7 +7,7 @@
         "path": "lead-signup",
         "options": {}
       },
-      "name": "Webhook Trigger",
+      "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [250, 300]
@@ -30,61 +30,11 @@
     },
     {
       "parameters": {
-        "url": "http://crm-service/api/vip-onboarding",
         "method": "POST",
-        "jsonParameters": true,
-        "options": {
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
-        },
-        "bodyParametersUi": {
-          "parameter": [
-            {
-              "name": "email",
-              "value": "={{$node[\"Webhook Trigger\"].json.body.email}}"
-            }
-          ]
-        }
-      },
-      "name": "CRM Integration (VIP)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [700, 200],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1000
-    },
-    {
-      "parameters": {
-        "url": "http://crm-service/api/standard-onboarding",
-        "method": "POST",
-        "jsonParameters": true,
-        "options": {},
-        "bodyParametersUi": {
-          "parameter": [
-            {
-              "name": "email",
-              "value": "={{$node[\"Webhook Trigger\"].json.body.email}}"
-            }
-          ]
-        }
-      },
-      "name": "CRM Integration (Standard)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [700, 400]
-    },
-    {
-      "parameters": {
         "url": "http://backend:8080/api/logs",
-        "method": "POST",
-        "jsonParameters": true,
-        "options": {},
-        "bodyParametersUi": {
-          "parameter": [
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
             {
               "name": "workflow_id",
               "value": "={{$workflow.id}}"
@@ -99,15 +49,48 @@
             },
             {
               "name": "message",
-              "value": "Lead processed successfully"
+              "value": "Processing VIP Lead: {{$node[\"Webhook\"].json.body.email}}"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "name": "Log Success",
+      "name": "CRM Integration (VIP)",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [1000, 300]
+      "typeVersion": 3,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8080/api/logs",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflow_id",
+              "value": "={{$workflow.id}}"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{$execution.id}}"
+            },
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "message",
+              "value": "Processing Standard Lead: {{$node[\"Webhook\"].json.body.email}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "CRM Integration (Standard)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [700, 400]
     },
     {
       "parameters": {},
@@ -118,28 +101,11 @@
     },
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "0 0 * * *"
-            }
-          ]
-        }
-      },
-      "name": "Nightly Schedule",
-      "type": "n8n-nodes-base.schedule",
-      "typeVersion": 1,
-      "position": [250, 450]
-    },
-    {
-      "parameters": {
-        "url": "http://backend:8080/api/logs",
         "method": "POST",
-        "jsonParameters": true,
-        "options": {},
-        "bodyParametersUi": {
-          "parameter": [
+        "url": "http://backend:8080/api/logs",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
             {
               "name": "workflow_id",
               "value": "={{$workflow.id}}"
@@ -157,16 +123,17 @@
               "value": "={{$node[\"Error Trigger\"].json.message}}"
             }
           ]
-        }
+        },
+        "options": {}
       },
       "name": "Log Error",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
+      "typeVersion": 3,
       "position": [450, 600]
     }
   ],
   "connections": {
-    "Webhook Trigger": {
+    "Webhook": {
       "main": [
         [
           {
@@ -195,44 +162,11 @@
         ]
       ]
     },
-    "CRM Integration (VIP)": {
-      "main": [
-        [
-          {
-            "node": "Log Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "CRM Integration (Standard)": {
-      "main": [
-        [
-          {
-            "node": "Log Success",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Error Trigger": {
       "main": [
         [
           {
             "node": "Log Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Nightly Schedule": {
-      "main": [
-        [
-          {
-            "node": "Log Success",
             "type": "main",
             "index": 0
           }

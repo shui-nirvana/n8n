@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken'
 
 export function authMiddleware (req, res, next) {
+  // Allow logs endpoint to bypass auth
+  if (req.path === '/logs') {
+    return next()
+  }
+
   const auth = req.headers.authorization || ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null
   if (!token) {
